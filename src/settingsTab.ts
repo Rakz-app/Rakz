@@ -47,7 +47,7 @@ export class MemonicSettingsTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl("h2", { text: "AI Memonics Settings" });
+    containerEl.createEl("h2", { text: "MnemoTree Settings" });
 
     containerEl.createEl("h3", { text: "OpenRouter Configuration" });
 

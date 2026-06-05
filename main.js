@@ -48,7 +48,6 @@ var DEFAULT_SETTINGS = {
   },
   memonics: [],
   nextMemonicNumber: 1,
-  nextBid: 1,
   nextSid: 1,
   restoreMode: "callout",
   copyIsMove: false,
@@ -226,7 +225,7 @@ Respond to: {{noteContent}}`
     conflict
   };
 }
-function scanNoteForMemonics(fileContent, filePath, getNextBid, seenSids) {
+function scanNoteForMemonics(fileContent, filePath, seenSids) {
   const lines = fileContent.split("\n");
   const parsedList = parseCalloutMemonics(lines);
   const folderPath = "/" + filePath.split("/").slice(0, -1).join("/");
@@ -532,7 +531,7 @@ ${memonicContext}` : systemPrompt;
         "Content-Type": "application/json",
         Authorization: `Bearer ${provider.apiKey}`,
         "HTTP-Referer": "https://obsidian.md",
-        "X-Title": "Obsidian AI Memonics Plugin"
+        "X-Title": "Obsidian MnemoTree Plugin"
       },
       body: JSON.stringify(requestBody),
       signal: controller.signal
@@ -1362,15 +1361,18 @@ Create or improve the mental-link title and give a one-line summary. Return ONLY
       return;
     const content = view.editor.getValue();
     const lines = content.split("\n");
-    const calloutRegex = /^>\s*\[!memonic/i;
     for (let i = 0; i < lines.length; i++) {
-      if (calloutRegex.test(lines[i]) && lines[i].includes(memonic.title)) {
-        view.editor.setCursor({ line: i, ch: 0 });
-        view.editor.scrollIntoView(
-          { from: { line: i, ch: 0 }, to: { line: i, ch: 0 } },
-          true
-        );
-        break;
+      if (/^>\s*\[!memonic/i.test(lines[i])) {
+        for (let j = i + 1; j < lines.length && lines[j].startsWith(">"); j++) {
+          if (lines[j].includes(`<!-- sid: ${memonic.sid} -->`)) {
+            view.editor.setCursor({ line: i, ch: 0 });
+            view.editor.scrollIntoView(
+              { from: { line: i, ch: 0 }, to: { line: i, ch: 0 } },
+              true
+            );
+            return;
+          }
+        }
       }
     }
   }
@@ -1430,6 +1432,7 @@ var MemonicCreateModal = class extends import_obsidian.Modal {
     this.folderPath = "";
     this.triggerKeywords = [];
     this.showTree = false;
+    this.clickOutsideHandler = null;
     this.plugin = plugin;
     this.onSubmit = onSubmit;
   }
@@ -1558,11 +1561,12 @@ var MemonicCreateModal = class extends import_obsidian.Modal {
         this.tagsDropdownEl.style.display = "none";
       }
     });
-    document.addEventListener("click", (e) => {
+    this.clickOutsideHandler = (e) => {
       if (!container.contains(e.target)) {
         this.tagsDropdownEl.style.display = "none";
       }
-    });
+    };
+    document.addEventListener("click", this.clickOutsideHandler);
     renderPills();
   }
   buildKeywordsWidget(container) {
@@ -1706,6 +1710,10 @@ var MemonicCreateModal = class extends import_obsidian.Modal {
     }
   }
   onClose() {
+    if (this.clickOutsideHandler) {
+      document.removeEventListener("click", this.clickOutsideHandler);
+      this.clickOutsideHandler = null;
+    }
     const { contentEl } = this;
     contentEl.empty();
   }
@@ -1831,20 +1839,7 @@ ${calloutText}
         if (oldFile instanceof import_obsidian.TFile) {
           const raw = await this.app.vault.read(oldFile);
           const lines = raw.split("\n");
-          const idStr = this.memonic.id.replace(/^mem-?/, "");
-          let codeBlockStart = -1;
-          for (let i = 0; i < lines.length; i++) {
-            if (lines[i].trim() === "```memonic-ref") {
-              for (let j = i + 1; j < lines.length && lines[j].trim() !== "```"; j++) {
-                if (lines[j].trim() === `> id: ${idStr}`) {
-                  codeBlockStart = i;
-                  break;
-                }
-              }
-              if (codeBlockStart !== -1)
-                break;
-            }
-          }
+          let codeBlockStart = findRefBlockStartBySid(lines, this.memonic.sid);
           if (codeBlockStart !== -1) {
             let blockEnd = codeBlockStart + 1;
             while (blockEnd < lines.length && lines[blockEnd].trim() !== "```")
@@ -1859,23 +1854,14 @@ ${calloutText}
               );
             }
           } else {
-            let idx = -1;
-            for (let i = 0; i < lines.length; i++) {
-              if (lines[i].trim() === `> id: ${idStr}`) {
-                idx = i;
-                break;
-              }
-            }
-            if (idx !== -1) {
-              let s = idx;
-              while (s > 0 && lines[s - 1].startsWith(">") && !/^>\s*\[!/.test(lines[s].trim()))
-                s--;
-              let e = idx;
+            const calloutStart = findCalloutStartBySid(lines, this.memonic.sid);
+            if (calloutStart !== -1) {
+              let e = calloutStart;
               while (e < lines.length - 1 && lines[e + 1].startsWith(">") && !/^>\s*\[!/.test(lines[e + 1].trim()))
                 e++;
               await this.app.vault.modify(
                 oldFile,
-                [...lines.slice(0, s), ...lines.slice(e + 1)].join("\n")
+                [...lines.slice(0, calloutStart), ...lines.slice(e + 1)].join("\n")
               );
             }
           }
@@ -1933,6 +1919,39 @@ function countMemonicCalloutsInText(content) {
   }
   return count;
 }
+function findCalloutStartBySid(lines, sid) {
+  for (let i = 0; i < lines.length; i++) {
+    if (/^>\s*\[!memonic/i.test(lines[i])) {
+      for (let j = i + 1; j < lines.length && lines[j].startsWith(">"); j++) {
+        if (lines[j].includes(`<!-- sid: ${sid} -->`)) {
+          return i;
+        }
+      }
+    }
+  }
+  return -1;
+}
+function findRefBlockStartBySid(lines, sid) {
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].trim() === "```memonic-ref") {
+      let blockEnd = -1;
+      for (let k = i + 1; k < lines.length; k++) {
+        if (lines[k].trim() === "```") {
+          blockEnd = k;
+          break;
+        }
+      }
+      if (blockEnd === -1)
+        blockEnd = lines.length;
+      for (let j = i + 1; j < blockEnd; j++) {
+        if (lines[j].includes(`<!-- sid: ${sid} -->`)) {
+          return i;
+        }
+      }
+    }
+  }
+  return -1;
+}
 function buildMemonicCallout(opts) {
   const lines = [`> [!memonic|${opts.type}] ${opts.title}`];
   if (opts.id !== "")
@@ -1958,20 +1977,7 @@ async function removeCalloutFromFile(app, memonic) {
     return;
   const raw = await app.vault.read(file);
   const lines = raw.split("\n");
-  const idStr = memonic.id.replace(/^mem-?/, "");
-  let targetIdx = -1;
-  for (let i = 0; i < lines.length; i++) {
-    if (lines[i].trim() === "```memonic-ref") {
-      for (let j = i + 1; j < lines.length && lines[j].trim() !== "```"; j++) {
-        if (lines[j].trim() === `> id: ${idStr}`) {
-          targetIdx = i;
-          break;
-        }
-      }
-      if (targetIdx !== -1)
-        break;
-    }
-  }
+  let targetIdx = findRefBlockStartBySid(lines, memonic.sid);
   if (targetIdx !== -1) {
     let blockEnd2 = targetIdx + 1;
     while (blockEnd2 < lines.length && lines[blockEnd2].trim() !== "```") {
@@ -1986,25 +1992,15 @@ async function removeCalloutFromFile(app, memonic) {
       return;
     }
   }
-  targetIdx = -1;
-  for (let i = 0; i < lines.length; i++) {
-    if (lines[i].trim() === `> id: ${idStr}`) {
-      targetIdx = i;
-      break;
-    }
-  }
+  targetIdx = findCalloutStartBySid(lines, memonic.sid);
   if (targetIdx === -1)
     return;
-  let blockStart = targetIdx;
-  while (blockStart > 0 && lines[blockStart - 1].startsWith(">") && !/^>\s*\[!/.test(lines[blockStart].trim())) {
-    blockStart--;
-  }
   let blockEnd = targetIdx;
   while (blockEnd < lines.length - 1 && lines[blockEnd + 1].startsWith(">") && !/^>\s*\[!/.test(lines[blockEnd + 1].trim())) {
     blockEnd++;
   }
   const newLines = [
-    ...lines.slice(0, blockStart),
+    ...lines.slice(0, targetIdx),
     ...lines.slice(blockEnd + 1)
   ];
   await app.vault.modify(file, newLines.join("\n"));
@@ -2013,9 +2009,10 @@ function formatMemonicCallout(memonic) {
   var _a, _b;
   if (!memonic.sid)
     memonic.sid = generateSid();
+  const visibleId = memonic.id.replace(/^mem-?/, "");
   const lines = [
     `> [!memonic|${memonic.type}] ${memonic.title}`,
-    `> id: ${memonic.id.replace(/^mem-?/, "")}`,
+    ...visibleId !== "" ? [`> id: ${visibleId}`] : [],
     `> <!-- sid: ${memonic.sid} -->`,
     `> strength: ${memonic.strength}`,
     ...memonic.tags.length > 0 ? [`> tags: ${memonic.tags.join(", ")}`] : [],
@@ -2197,20 +2194,7 @@ var AIResultModal = class extends import_obsidian.Modal {
       if (file instanceof import_obsidian.TFile) {
         const content = await this.app.vault.read(file);
         const lines = content.split("\n");
-        const idStr = this.memonic.id.replace(/^mem-?/, "");
-        let calloutStart = -1;
-        for (let i = 0; i < lines.length; i++) {
-          if (lines[i].match(/^>\s*\[!memonic\|(\w+)\]\s*.+/)) {
-            for (let j = i + 1; j < lines.length && lines[j].startsWith(">"); j++) {
-              if (lines[j].trim() === `> id: ${idStr}`) {
-                calloutStart = i;
-                break;
-              }
-            }
-            if (calloutStart !== -1)
-              break;
-          }
-        }
+        const calloutStart = findCalloutStartBySid(lines, this.memonic.sid);
         if (calloutStart === -1) {
           new import_obsidian.Notice("Could not find callout in source file");
           this.close();
@@ -2256,15 +2240,8 @@ var AIResultModal = class extends import_obsidian.Modal {
       return;
     }
     const content = await this.app.vault.read(file);
-    const idStr = this.memonic.id.replace(/^mem-?/, "");
     const lines = content.split("\n");
-    let insertIdx = -1;
-    for (let i = 0; i < lines.length; i++) {
-      if (lines[i].trim() === `> id: ${idStr}`) {
-        insertIdx = i;
-        break;
-      }
-    }
+    const insertIdx = findCalloutStartBySid(lines, this.memonic.sid);
     if (insertIdx === -1) {
       new import_obsidian.Notice("Could not find callout in source file");
       this.close();
@@ -2358,20 +2335,7 @@ var SmileyModal = class extends import_obsidian.Modal {
         if (file instanceof import_obsidian.TFile) {
           const content = await this.app.vault.read(file);
           const lines = content.split("\n");
-          const idStr = this.memonic.id.replace(/^mem-?/, "");
-          let calloutStart = -1;
-          for (let i = 0; i < lines.length; i++) {
-            if (lines[i].match(/^>\s*\[!memonic\|(\w+)\]\s*.+/)) {
-              for (let j = i + 1; j < lines.length && lines[j].startsWith(">"); j++) {
-                if (lines[j].trim() === `> id: ${idStr}`) {
-                  calloutStart = i;
-                  break;
-                }
-              }
-              if (calloutStart !== -1)
-                break;
-            }
-          }
+          const calloutStart = findCalloutStartBySid(lines, this.memonic.sid);
           if (calloutStart === -1) {
             new import_obsidian.Notice("Callout not found");
             this.close();
@@ -2415,20 +2379,7 @@ var SmileyModal = class extends import_obsidian.Modal {
     }
     const content = await this.app.vault.read(file);
     const lines = content.split("\n");
-    const idStr = this.memonic.id.replace(/^mem-?/, "");
-    let calloutStart = -1;
-    for (let i = 0; i < lines.length; i++) {
-      if (lines[i].match(/^>\s*\[!memonic\|(\w+)\]\s*.+/)) {
-        for (let j = i + 1; j < lines.length && lines[j].startsWith(">"); j++) {
-          if (lines[j].trim() === `> id: ${idStr}`) {
-            calloutStart = i;
-            break;
-          }
-        }
-        if (calloutStart !== -1)
-          break;
-      }
-    }
+    const calloutStart = findCalloutStartBySid(lines, this.memonic.sid);
     if (calloutStart === -1) {
       new import_obsidian.Notice("Callout not found in file");
       this.close();
@@ -2683,7 +2634,7 @@ var MemonicSettingsTab = class extends import_obsidian3.PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    containerEl.createEl("h2", { text: "AI Memonics Settings" });
+    containerEl.createEl("h2", { text: "MnemoTree Settings" });
     containerEl.createEl("h3", { text: "OpenRouter Configuration" });
     new import_obsidian3.Setting(containerEl).setName("API Key").setDesc("Your OpenRouter API key").addText(
       (cb) => cb.setPlaceholder("sk-or-v1-...").setValue(this.settings.aiProvider.apiKey).onChange(async (value) => {
@@ -2959,7 +2910,7 @@ var MemonicPlugin = class extends import_obsidian4.Plugin {
       this.initViews();
       await this.scanVaultForMemonics();
     });
-    new import_obsidian4.Notice("AI Memonics plugin loaded!");
+    new import_obsidian4.Notice("MnemoTree plugin loaded!");
   }
   onunload() {
     flushSave();
@@ -3072,7 +3023,6 @@ var MemonicPlugin = class extends import_obsidian4.Plugin {
           scanNoteForMemonics(
             content,
             file.path,
-            () => this.settings.nextBid++,
             seenSids
           );
           const writeBack = writeBackMissingIds(content, file.path);
@@ -3139,7 +3089,7 @@ var MemonicPlugin = class extends import_obsidian4.Plugin {
       this.isScanning = true;
       try {
         const content = await this.app.vault.read(file);
-        scanNoteForMemonics(content, file.path, () => this.settings.nextBid++);
+        scanNoteForMemonics(content, file.path);
         this.saveSettings();
       } catch (e) {
         console.error(`Error re-scanning ${file.path}:`, e);
@@ -3185,7 +3135,7 @@ var MemonicPlugin = class extends import_obsidian4.Plugin {
     this.isScanning = true;
     try {
       const content = await this.app.vault.read(file);
-      scanNoteForMemonics(content, file.path, () => this.settings.nextBid++);
+      scanNoteForMemonics(content, file.path);
       this.saveSettings();
     } catch (e) {
       console.error(`Error scanning active file:`, e);

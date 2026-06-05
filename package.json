@@ -1,7 +1,7 @@
 {
-  "name": "ai-memonics",
+  "name": "mnemo-tree",
   "version": "1.0.0",
-  "description": "AI-powered memory mnemonics (memonics) for Obsidian",
+  "description": "Memory mnemonics (memonics) tree for Obsidian",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
@@ -16,7 +16,7 @@
     "memory"
   ],
   "author": "Abdelrhman Hammoudeh",
-  "license": "MIT",
+  "license": "GPL-3.0-or-later",
   "devDependencies": {
     "@types/node": "^16.11.6",
     "builtin-modules": "^3.3.0",

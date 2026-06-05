@@ -77,7 +77,7 @@ export async function queryOpenRouter(
         "Content-Type": "application/json",
         Authorization: `Bearer ${provider.apiKey}`,
         "HTTP-Referer": "https://obsidian.md",
-        "X-Title": "Obsidian AI Memonics Plugin",
+        "X-Title": "Obsidian MnemoTree Plugin",
       },
       body: JSON.stringify(requestBody),
       signal: controller.signal,

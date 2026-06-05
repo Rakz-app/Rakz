@@ -1,6 +1,6 @@
-# AI Memonics
+# MnemoTree
 
-AI-powered memory mnemonics (memonics) for Obsidian.
+Memory mnemonics (memonics) tree for Obsidian.
 
 Turn knowledge into structured, searchable callouts embedded in your notes. Tag them, rate their strength, trigger AI suggestions, and never lose track of what you've learned.
 
@@ -8,6 +8,7 @@ Turn knowledge into structured, searchable callouts embedded in your notes. Tag 
 
 - **Memonic Callouts** — structured knowledge snippets embedded directly in your Markdown notes
 - **Dual Identity** — stable hidden `sid` (never reused) + editable visible `id` — no more duplicate conflicts
+- **sid-Based File Matching** — all callout operations (edit, delete, restore, navigate, AI apply) locate callouts by their stable `sid` comment, not by the editable `id` line — so rename, empty-id, and duplicate-id scenarios all work correctly
 - **AI Integration** — per-memonic OpenRouter model config, AI suggest button, mental-link (:) generator
 - **Suggestion Panel** — auto-matches memonics to your active note by keywords, tags, and folder
 - **Glossary Sidebar** — filter, sort, group, search; show/hide trash & archived; card-based management
@@ -15,13 +16,14 @@ Turn knowledge into structured, searchable callouts embedded in your notes. Tag 
 - **Move & Restore** — move memonics between files, restore from trash to any location
 - **Reference Copies** — insert `memonic-ref` code blocks that won't conflict with originals
 - **Soft Delete & Trash** — deleted memonics go to trash (recoverable), force delete (!!!) with confirmation
+- **Robust Error Handling** — 30-second timeout on AI requests, clear error messages for auth failures, rate limits, and network issues
 
 ## Installation
 
 ### Manual
 
 1. Download `main.js`, `manifest.json`, and `styles.css` from the latest release
-2. Copy them into `<vault>/.obsidian/plugins/ai-memonics/`
+2. Copy them into `<vault>/.obsidian/plugins/mnemo-tree/`
 3. Enable the plugin in Obsidian Settings → Community Plugins
 
 ### BRAT
@@ -30,7 +32,7 @@ Add this repository to [BRAT](https://github.com/TfTHacker/obsidian-brat) and in
 
 ## Quick Start
 
-1. Open **Settings → AI Memonics** and enter your [OpenRouter](https://openrouter.ai/) API key
+1. Open **Settings → MnemoTree** and enter your [OpenRouter](https://openrouter.ai/) API key
 2. Open the **Memonic Glossary** sidebar (ribbon book icon or command palette)
 3. Click **+ New Memonic** or run **Insert Memonic Template** from the command palette
 4. Your memonics are auto-discovered when you edit or save files
@@ -52,8 +54,8 @@ Add this repository to [BRAT](https://github.com/TfTHacker/obsidian-brat) and in
 | Line | Description |
 |---|---|
 | `> [!memonic\|TYPE] TITLE` | Callout header — TYPE is one of the built-in types or any custom string |
-| `> id: N` | Visible numeric label (omitted if auto-id is off) |
-| `> <!-- sid: N -->` | Hidden stable identity — never edited manually |
+| `> id: N` | Visible numeric label (omitted when auto-id is off or id is empty) |
+| `> <!-- sid: N -->` | Hidden stable identity — never edited manually; used by all file operations |
 | `> strength: 1–5` | Importance rating |
 | `> tags: ...` | Comma-separated tags |
 | `> triggers: ...` | Comma-separated keywords for suggestion matching |
@@ -145,7 +147,7 @@ Sends the memonic's context, type, tags, and triggers to OpenRouter and returns 
 ```
 Apply individually or all at once via the AI Result Modal.
 
-### Mental-Link Generator (:) Button)
+### Mental-Link Generator (:) Button
 
 Asks the AI to craft a vivid, memorable title (mental link) and one-line summary from the memonic's context.
 
@@ -188,11 +190,23 @@ The regular ⟳ button only re-renders the view; Reconcile does the heavy liftin
 
 Each memonic has two identifiers:
 
-- **`sid` (system id)** — stable, monotonic, never reused. Anchors identity across renames, copies, and file moves. Hidden from the user in an HTML comment.
-- **`id` (visible id)** — user-facing label like `mem-1`. Freely editable; multiple memonics may share the same visible id (resolved by archiving older copies).
+- **`sid` (system id)** — stable, monotonic, never reused. Anchors identity across renames, copies, and file moves. Hidden from the user in an HTML comment. **All file operations (edit, delete, restore, navigate, AI apply) locate callouts by `sid`**, ensuring correctness even when the visible `id` is empty or duplicated.
+- **`id` (visible id)** — user-facing label like `mem-1`. Freely editable; multiple memonics may share the same visible id (resolved by archiving older copies). Omitted from the callout when empty.
 
 This eliminates the old duplicate-ID problem: copying a callout to another note mints a new `sid`, so both coexist independently.
 
+## Changelog
+
+### v1.0.0
+
+- **[Critical fix]** All callout file operations (edit, delete, restore, navigate, AI suggest/replace) now locate callouts by their stable `sid` (`<!-- sid: N -->`) instead of the editable `id` line. This fixes failures when `id` is empty, duplicated, or edited by the user.
+- **[Fix]** `navigateToMemonic` now matches by `sid` inside the callout body instead of by title — prevents navigation to the wrong callout when titles overlap.
+- **[Fix]** `formatMemonicCallout` now omits the `> id:` line when the visible id is empty, matching `buildMemonicCallout` behavior and preventing orphan empty-id lines.
+- **[Fix]** `MemonicCreateModal` click-outside handler is now properly cleaned up on close, preventing a memory/event leak.
+- **[Improvement]** AI request timeout (30s) and descriptive error messages for auth failures, rate limits, and network issues.
+- **[Cleanup]** Removed dead code: `runSuggestion`, `incrementUsage` (id-based), `nextBid` counter, and `getNextBid` parameter.
+- **[License]** Changed from MIT to GPLv3.
+
 ## License
 
-MIT
+GPLv3 — see [LICENSE](LICENSE).

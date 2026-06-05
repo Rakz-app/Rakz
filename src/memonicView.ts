@@ -894,16 +894,19 @@ export class MemonicGlossaryView extends ItemView {
 
     const content = view.editor.getValue();
     const lines = content.split("\n");
-    const calloutRegex = /^>\s*\[!memonic/i;
 
     for (let i = 0; i < lines.length; i++) {
-      if (calloutRegex.test(lines[i]) && lines[i].includes(memonic.title)) {
-        view.editor.setCursor({ line: i, ch: 0 });
-        view.editor.scrollIntoView(
-          { from: { line: i, ch: 0 }, to: { line: i, ch: 0 } },
-          true,
-        );
-        break;
+      if (/^>\s*\[!memonic/i.test(lines[i])) {
+        for (let j = i + 1; j < lines.length && lines[j].startsWith(">"); j++) {
+          if (lines[j].includes(`<!-- sid: ${memonic.sid} -->`)) {
+            view.editor.setCursor({ line: i, ch: 0 });
+            view.editor.scrollIntoView(
+              { from: { line: i, ch: 0 }, to: { line: i, ch: 0 } },
+              true,
+            );
+            return;
+          }
+        }
       }
     }
   }
@@ -982,6 +985,7 @@ class MemonicCreateModal extends Modal {
   private tagsInputEl: HTMLInputElement;
   private tagsDropdownEl: HTMLDivElement;
   private keywordsInputEl: HTMLInputElement;
+  private clickOutsideHandler: ((e: MouseEvent) => void) | null = null;
 
   constructor(app: App, plugin: MemonicPlugin, onSubmit: () => void) {
     super(app);
@@ -1149,11 +1153,12 @@ class MemonicCreateModal extends Modal {
       }
     });
 
-    document.addEventListener("click", (e) => {
+    this.clickOutsideHandler = (e: MouseEvent) => {
       if (!container.contains(e.target as Node)) {
         this.tagsDropdownEl.style.display = "none";
       }
-    });
+    };
+    document.addEventListener("click", this.clickOutsideHandler);
 
     renderPills();
   }
@@ -1336,6 +1341,10 @@ class MemonicCreateModal extends Modal {
   }
 
   onClose(): void {
+    if (this.clickOutsideHandler) {
+      document.removeEventListener("click", this.clickOutsideHandler);
+      this.clickOutsideHandler = null;
+    }
     const { contentEl } = this;
     contentEl.empty();
   }
@@ -1477,23 +1486,7 @@ class RestoreLocationModal extends Modal {
         if (oldFile instanceof TFile) {
           const raw = await this.app.vault.read(oldFile);
           const lines = raw.split("\n");
-          const idStr = this.memonic.id.replace(/^mem-?/, "");
-          let codeBlockStart = -1;
-          for (let i = 0; i < lines.length; i++) {
-            if (lines[i].trim() === "```memonic-ref") {
-              for (
-                let j = i + 1;
-                j < lines.length && lines[j].trim() !== "```";
-                j++
-              ) {
-                if (lines[j].trim() === `> id: ${idStr}`) {
-                  codeBlockStart = i;
-                  break;
-                }
-              }
-              if (codeBlockStart !== -1) break;
-            }
-          }
+          let codeBlockStart = findRefBlockStartBySid(lines, this.memonic.sid);
           if (codeBlockStart !== -1) {
             let blockEnd = codeBlockStart + 1;
             while (blockEnd < lines.length && lines[blockEnd].trim() !== "```")
@@ -1508,23 +1501,9 @@ class RestoreLocationModal extends Modal {
               );
             }
           } else {
-            // try callout block removal
-            let idx = -1;
-            for (let i = 0; i < lines.length; i++) {
-              if (lines[i].trim() === `> id: ${idStr}`) {
-                idx = i;
-                break;
-              }
-            }
-            if (idx !== -1) {
-              let s = idx;
-              while (
-                s > 0 &&
-                lines[s - 1].startsWith(">") &&
-                !/^>\s*\[!/.test(lines[s].trim())
-              )
-                s--;
-              let e = idx;
+            const calloutStart = findCalloutStartBySid(lines, this.memonic.sid);
+            if (calloutStart !== -1) {
+              let e = calloutStart;
               while (
                 e < lines.length - 1 &&
                 lines[e + 1].startsWith(">") &&
@@ -1533,7 +1512,7 @@ class RestoreLocationModal extends Modal {
                 e++;
               await this.app.vault.modify(
                 oldFile,
-                [...lines.slice(0, s), ...lines.slice(e + 1)].join("\n"),
+                [...lines.slice(0, calloutStart), ...lines.slice(e + 1)].join("\n"),
               );
             }
           }
@@ -1594,6 +1573,40 @@ export function countMemonicCalloutsInText(content: string): number {
   return count;
 }
 
+function findCalloutStartBySid(lines: string[], sid: number): number {
+  for (let i = 0; i < lines.length; i++) {
+    if (/^>\s*\[!memonic/i.test(lines[i])) {
+      for (let j = i + 1; j < lines.length && lines[j].startsWith(">"); j++) {
+        if (lines[j].includes(`<!-- sid: ${sid} -->`)) {
+          return i;
+        }
+      }
+    }
+  }
+  return -1;
+}
+
+function findRefBlockStartBySid(lines: string[], sid: number): number {
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].trim() === "```memonic-ref") {
+      let blockEnd = -1;
+      for (let k = i + 1; k < lines.length; k++) {
+        if (lines[k].trim() === "```") {
+          blockEnd = k;
+          break;
+        }
+      }
+      if (blockEnd === -1) blockEnd = lines.length;
+      for (let j = i + 1; j < blockEnd; j++) {
+        if (lines[j].includes(`<!-- sid: ${sid} -->`)) {
+          return i;
+        }
+      }
+    }
+  }
+  return -1;
+}
+
 /**
  * The single source of truth for a memonic callout's text, shared by every
  * creation path so the template is identical everywhere. The hidden `sid` is
@@ -1631,24 +1644,8 @@ export async function removeCalloutFromFile(app: App, memonic: Memonic): Promise
 
   const raw = await app.vault.read(file);
   const lines = raw.split("\n");
-  const idStr = memonic.id.replace(/^mem-?/, "");
 
-  let targetIdx = -1;
-  for (let i = 0; i < lines.length; i++) {
-    if (lines[i].trim() === "```memonic-ref") {
-      for (
-        let j = i + 1;
-        j < lines.length && lines[j].trim() !== "```";
-        j++
-      ) {
-        if (lines[j].trim() === `> id: ${idStr}`) {
-          targetIdx = i;
-          break;
-        }
-      }
-      if (targetIdx !== -1) break;
-    }
-  }
+  let targetIdx = findRefBlockStartBySid(lines, memonic.sid);
 
   if (targetIdx !== -1) {
     let blockEnd = targetIdx + 1;
@@ -1665,24 +1662,9 @@ export async function removeCalloutFromFile(app: App, memonic: Memonic): Promise
     }
   }
 
-  targetIdx = -1;
-  for (let i = 0; i < lines.length; i++) {
-    if (lines[i].trim() === `> id: ${idStr}`) {
-      targetIdx = i;
-      break;
-    }
-  }
+  targetIdx = findCalloutStartBySid(lines, memonic.sid);
 
   if (targetIdx === -1) return;
-
-  let blockStart = targetIdx;
-  while (
-    blockStart > 0 &&
-    lines[blockStart - 1].startsWith(">") &&
-    !/^>\s*\[!/.test(lines[blockStart].trim())
-  ) {
-    blockStart--;
-  }
 
   let blockEnd = targetIdx;
   while (
@@ -1694,7 +1676,7 @@ export async function removeCalloutFromFile(app: App, memonic: Memonic): Promise
   }
 
   const newLines = [
-    ...lines.slice(0, blockStart),
+    ...lines.slice(0, targetIdx),
     ...lines.slice(blockEnd + 1),
   ];
   await app.vault.modify(file, newLines.join("\n"));
@@ -1702,9 +1684,10 @@ export async function removeCalloutFromFile(app: App, memonic: Memonic): Promise
 
 export function formatMemonicCallout(memonic: Memonic): string {
   if (!memonic.sid) memonic.sid = generateSid();
+  const visibleId = memonic.id.replace(/^mem-?/, "");
   const lines = [
     `> [!memonic|${memonic.type}] ${memonic.title}`,
-    `> id: ${memonic.id.replace(/^mem-?/, "")}`,
+    ...(visibleId !== "" ? [`> id: ${visibleId}`] : []),
     `> <!-- sid: ${memonic.sid} -->`,
     `> strength: ${memonic.strength}`,
     ...(memonic.tags.length > 0 ? [`> tags: ${memonic.tags.join(", ")}`] : []),
@@ -1944,24 +1927,8 @@ class AIResultModal extends Modal {
       if (file instanceof TFile) {
         const content = await this.app.vault.read(file);
         const lines = content.split("\n");
-        const idStr = this.memonic.id.replace(/^mem-?/, "");
 
-        let calloutStart = -1;
-        for (let i = 0; i < lines.length; i++) {
-          if (lines[i].match(/^>\s*\[!memonic\|(\w+)\]\s*.+/)) {
-            for (
-              let j = i + 1;
-              j < lines.length && lines[j].startsWith(">");
-              j++
-            ) {
-              if (lines[j].trim() === `> id: ${idStr}`) {
-                calloutStart = i;
-                break;
-              }
-            }
-            if (calloutStart !== -1) break;
-          }
-        }
+        const calloutStart = findCalloutStartBySid(lines, this.memonic.sid);
 
         if (calloutStart === -1) {
           new Notice("Could not find callout in source file");
@@ -2019,16 +1986,9 @@ class AIResultModal extends Modal {
     }
 
     const content = await this.app.vault.read(file);
-    const idStr = this.memonic.id.replace(/^mem-?/, "");
 
     const lines = content.split("\n");
-    let insertIdx = -1;
-    for (let i = 0; i < lines.length; i++) {
-      if (lines[i].trim() === `> id: ${idStr}`) {
-        insertIdx = i;
-        break;
-      }
-    }
+    const insertIdx = findCalloutStartBySid(lines, this.memonic.sid);
 
     if (insertIdx === -1) {
       new Notice("Could not find callout in source file");
@@ -2150,24 +2110,8 @@ class SmileyModal extends Modal {
         if (file instanceof TFile) {
           const content = await this.app.vault.read(file);
           const lines = content.split("\n");
-          const idStr = this.memonic.id.replace(/^mem-?/, "");
 
-          let calloutStart = -1;
-          for (let i = 0; i < lines.length; i++) {
-            if (lines[i].match(/^>\s*\[!memonic\|(\w+)\]\s*.+/)) {
-              for (
-                let j = i + 1;
-                j < lines.length && lines[j].startsWith(">");
-                j++
-              ) {
-                if (lines[j].trim() === `> id: ${idStr}`) {
-                  calloutStart = i;
-                  break;
-                }
-              }
-              if (calloutStart !== -1) break;
-            }
-          }
+          const calloutStart = findCalloutStartBySid(lines, this.memonic.sid);
 
           if (calloutStart === -1) {
             new Notice("Callout not found");
@@ -2227,20 +2171,8 @@ class SmileyModal extends Modal {
 
     const content = await this.app.vault.read(file);
     const lines = content.split("\n");
-    const idStr = this.memonic.id.replace(/^mem-?/, "");
 
-    let calloutStart = -1;
-    for (let i = 0; i < lines.length; i++) {
-      if (lines[i].match(/^>\s*\[!memonic\|(\w+)\]\s*.+/)) {
-        for (let j = i + 1; j < lines.length && lines[j].startsWith(">"); j++) {
-          if (lines[j].trim() === `> id: ${idStr}`) {
-            calloutStart = i;
-            break;
-          }
-        }
-        if (calloutStart !== -1) break;
-      }
-    }
+    const calloutStart = findCalloutStartBySid(lines, this.memonic.sid);
 
     if (calloutStart === -1) {
       new Notice("Callout not found in file");

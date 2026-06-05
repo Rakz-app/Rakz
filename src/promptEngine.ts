@@ -2,7 +2,6 @@ import { Memonic, PromptTemplate } from "./types";
 import {
   getAllMemonics,
   getMemonicsByFolder,
-  incrementUsage,
 } from "./memoryStore";
 
 export interface Suggestion {
@@ -96,13 +95,4 @@ export function fillPromptTemplate(
     .replace(/\{\{noteContent\}\}/g, noteContent)
     .replace(/\{\{tags\}\}/g, memonic.tags.join(", "))
     .replace(/\{\{type\}\}/g, memonic.type);
-}
-
-export function runSuggestion(
-  memonic: Memonic,
-  template: PromptTemplate,
-  noteContent: string
-): string {
-  incrementUsage(memonic.id);
-  return fillPromptTemplate(template.template, memonic, noteContent);
 }

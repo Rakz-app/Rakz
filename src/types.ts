@@ -79,7 +79,6 @@ export interface PluginSettings {
   aiProvider: AIProvider;
   memonics: Memonic[];
   nextMemonicNumber: number;
-  nextBid: number;
   nextSid: number;
   restoreMode: RestoreMode;
   copyIsMove: boolean;
@@ -106,7 +105,6 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   },
   memonics: [],
   nextMemonicNumber: 1,
-  nextBid: 1,
   nextSid: 1,
   restoreMode: "callout",
   copyIsMove: false,

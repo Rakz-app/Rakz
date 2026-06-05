@@ -256,7 +256,6 @@ function createMemonicFromParsed(
 export function scanNoteForMemonics(
   fileContent: string,
   filePath: string,
-  getNextBid?: () => number,
   seenSids?: Set<number>,
 ): void {
   const lines = fileContent.split("\n");

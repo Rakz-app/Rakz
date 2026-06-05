@@ -190,14 +190,6 @@ export function deleteMemonic(id: string): void {
   scheduleSave();
 }
 
-export function incrementUsage(id: string): void {
-  const memonic = memonics.find((m) => m.id === id);
-  if (memonic) {
-    memonic.usageCount += 1;
-    scheduleSave();
-  }
-}
-
 export function isIdUsed(id: string): boolean {
   return memonics.some((m) => m.id === id);
 }

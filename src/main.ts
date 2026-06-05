@@ -153,7 +153,7 @@ export default class MemonicPlugin extends Plugin {
       await this.scanVaultForMemonics();
     });
 
-    new Notice("AI Memonics plugin loaded!");
+    new Notice("MnemoTree plugin loaded!");
   }
 
   onunload() {
@@ -296,7 +296,6 @@ export default class MemonicPlugin extends Plugin {
           scanNoteForMemonics(
             content,
             file.path,
-            () => this.settings.nextBid++,
             seenSids,
           );
           const writeBack = writeBackMissingIds(content, file.path);
@@ -369,7 +368,7 @@ export default class MemonicPlugin extends Plugin {
       this.isScanning = true;
       try {
         const content = await this.app.vault.read(file);
-        scanNoteForMemonics(content, file.path, () => this.settings.nextBid++);
+scanNoteForMemonics(content, file.path);
         this.saveSettings();
       } catch (e) {
         console.error(`Error re-scanning ${file.path}:`, e);
@@ -420,7 +419,7 @@ export default class MemonicPlugin extends Plugin {
 
     try {
       const content = await this.app.vault.read(file);
-      scanNoteForMemonics(content, file.path, () => this.settings.nextBid++);
+      scanNoteForMemonics(content, file.path);
       this.saveSettings();
     } catch (e) {
       console.error(`Error scanning active file:`, e);
