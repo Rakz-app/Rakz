@@ -2,7 +2,7 @@
 
 ![GitHub release](https://img.shields.io/github/v/release/Abdelrhman-Hammoudeh/obsidian-mnemo-tree?style=flat-square)
 ![Codeberg release](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fcodeberg.org%2Fapi%2Fv1%2Frepos%2FaboodAG%2Fobsidian-mnemo-tree%2Freleases%2Flatest&query=%24.tag_name&label=Codeberg&color=%232185D0&style=flat-square)
-![License](https://img.shields.io/github/license/Abdelrhman-Hammoudeh/obsidian-mnemo-tree?style=flat-square)
+![License](https://img.shields.io/badge/license-GPLv3-blue?style=flat-square)
 ![Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=downloads&query=%24%5B%22mnemo-tree%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json&style=flat-square)
 
 Memory mnemonics (memonics) tree for Obsidian.
