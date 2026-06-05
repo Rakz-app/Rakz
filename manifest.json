@@ -3,7 +3,7 @@
   "name": "MnemoTree",
   "version": "1.0.0",
   "minAppVersion": "1.0.0",
-  "description": "AI-powered memory mnemonics (memonics) for your notes.",
+  "description": "Memory mnemonics (memonics) tree for Obsidian.",
   "author": "Abdelrhman Hammoudeh",
   "authorUrl": "https://github.com/abdelrhman-hammoudeh",
   "isDesktopOnly": false
