@@ -1,5 +1,9 @@
 # MnemoTree
 
+![GitHub release](https://img.shields.io/github/v/release/abdelrhman-hammoudeh/mnemo-tree?style=flat-square)
+![License](https://img.shields.io/github/license/abdelrhman-hammoudeh/mnemo-tree?style=flat-square)
+![Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=downloads&query=%24%5B%22mnemo-tree%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json&style=flat-square)
+
 Memory mnemonics (memonics) tree for Obsidian.
 
 Turn knowledge into structured, searchable callouts embedded in your notes. Tag them, rate their strength, trigger AI suggestions, and never lose track of what you've learned.
@@ -17,6 +21,12 @@ Turn knowledge into structured, searchable callouts embedded in your notes. Tag 
 - **Reference Copies** — insert `memonic-ref` code blocks that won't conflict with originals
 - **Soft Delete & Trash** — deleted memonics go to trash (recoverable), force delete (!!!) with confirmation
 - **Robust Error Handling** — 30-second timeout on AI requests, clear error messages for auth failures, rate limits, and network issues
+
+## Requirements
+
+- An [OpenRouter](https://openrouter.ai/) API key (required only for AI features — the rest of the plugin works without it).
+- AI requests consume OpenRouter credits. Costs depend on the model you choose; `openai/gpt-4o-mini` (the default) is low-cost. You are billed by OpenRouter directly.
+- Desktop recommended. Mobile is untested — enable at your own risk.
 
 ## Installation
 
@@ -206,6 +216,15 @@ This eliminates the old duplicate-ID problem: copying a callout to another note 
 - **[Improvement]** AI request timeout (30s) and descriptive error messages for auth failures, rate limits, and network issues.
 - **[Cleanup]** Removed dead code: `runSuggestion`, `incrementUsage` (id-based), `nextBid` counter, and `getNextBid` parameter.
 - **[License]** Changed from MIT to GPLv3.
+
+## Privacy & Data
+
+- **Local-first:** all your memonics are stored locally in your vault (`.obsidian/plugins/mnemo-tree/data.json`). Nothing is uploaded anywhere by default.
+- **AI features only:** when you explicitly trigger an AI action (Suggest, Mental-Link, or a Suggestion-Panel run), the relevant memonic content (title, context, tags, triggers) is sent to **OpenRouter** to generate a response. No data is sent unless you trigger these actions.
+- **Your API key** is stored locally in `data.json` and is sent only to OpenRouter's API to authenticate your requests. It is never transmitted anywhere else.
+- **No telemetry:** this plugin collects no analytics and phones home to no servers other than OpenRouter (and only for the AI features above).
+
+> **Security reminder:** `data.json` contains your API key and all your memonics. Make sure it's in `.gitignore` and never committed to the repository. If it was ever committed, revoke your key on OpenRouter and generate a new one.
 
 ## License
 
