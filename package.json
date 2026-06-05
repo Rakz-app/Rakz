@@ -1,0 +1,30 @@
+{
+  "name": "ai-memonics",
+  "version": "1.0.0",
+  "description": "AI-powered memory mnemonics (memonics) for Obsidian",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "node esbuild.config.mjs production",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [
+    "obsidian",
+    "plugin",
+    "memonic",
+    "ai",
+    "memory"
+  ],
+  "author": "Abdelrhman Hammoudeh",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^16.11.6",
+    "builtin-modules": "^3.3.0",
+    "esbuild": "^0.17.3",
+    "obsidian": "^1.4.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "tslib": "^2.8.1"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "ai-memonics",
+  "name": "AI Memonics",
+  "version": "1.0.0",
+  "minAppVersion": "1.0.0",
+  "description": "AI-powered memory mnemonics (memonics) for your notes.",
+  "author": "Abdelrhman Hammoudeh",
+  "authorUrl": "https://github.com/abdelrhman-hammoudeh",
+  "isDesktopOnly": false
+}

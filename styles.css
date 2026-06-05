@@ -1,0 +1,580 @@
+/* Memonic Glossary View */
+.memonic-glossary {
+  padding: 10px;
+}
+
+.memonic-header h2 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+}
+
+.memonic-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.memonic-filters input,
+.memonic-filters select {
+  width: 100%;
+}
+
+.memonic-stats {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.memonic-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.memonic-empty {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 20px;
+}
+
+.memonic-card {
+  padding: 10px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-secondary);
+}
+
+.memonic-card-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.memonic-type-badge {
+  font-size: 10px;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  font-weight: 600;
+}
+
+.memonic-strength {
+  font-size: 11px;
+  color: var(--text-warning);
+  flex: 1;
+}
+
+.memonic-delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.memonic-delete-btn:hover {
+  opacity: 1;
+  color: var(--text-error);
+}
+
+.memonic-card h3 {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.memonic-context {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.memonic-meta {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-bottom: 4px;
+}
+
+.memonic-folder {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.memonic-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.memonic-tag {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--tag-bg);
+  color: var(--tag-color);
+}
+
+.memonic-ai {
+  font-size: 10px;
+  color: var(--text-faint);
+}
+
+.memonic-add-container {
+  margin-top: 12px;
+}
+
+.memonic-add-btn {
+  width: 100%;
+  padding: 8px;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.memonic-add-btn:hover {
+  opacity: 0.9;
+}
+
+/* Suggestion Panel */
+.memonic-suggestions {
+  padding: 10px;
+}
+
+.suggestion-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.suggestion-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.suggestion-empty {
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+  padding: 20px;
+}
+
+.suggestion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.suggestion-card {
+  padding: 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-secondary);
+}
+
+.suggestion-card-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.suggestion-type-badge {
+  font-size: 10px;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  font-weight: 600;
+}
+
+.suggestion-match-badge {
+  font-size: 9px;
+  text-transform: uppercase;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: var(--background-modifier-success);
+  color: var(--text-on-accent);
+}
+
+.suggestion-card h4 {
+  margin: 2px 0;
+  font-size: 13px;
+}
+
+.suggestion-summary {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.suggestion-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-bottom: 6px;
+}
+
+.suggestion-tag {
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: var(--tag-bg);
+  color: var(--tag-color);
+}
+
+.suggestion-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.suggestion-run-btn {
+  flex: 1;
+  padding: 4px 8px;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.suggestion-run-btn:hover {
+  opacity: 0.9;
+}
+
+.suggestion-view-btn {
+  padding: 4px;
+  background: var(--background-modifier-border);
+  color: var(--text-muted);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.suggestion-view-btn:hover {
+  background: var(--background-modifier-border-hover);
+  color: var(--text-normal);
+}
+
+.suggestion-result {
+  margin-top: 10px;
+  padding: 8px;
+  border: 1px solid var(--interactive-accent);
+  border-radius: 6px;
+  background: var(--background-primary);
+}
+
+.suggestion-result h4 {
+  margin: 0 0 6px 0;
+  font-size: 13px;
+  color: var(--interactive-accent);
+}
+
+.suggestion-result p {
+  font-size: 12px;
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+/* Deleted memonics */
+.memonic-card-deleted {
+  opacity: 0.5;
+  border-color: var(--text-error);
+}
+
+.memonic-deleted-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: var(--text-error);
+  color: var(--text-on-accent);
+}
+
+.memonic-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.memonic-action-btn:hover {
+  opacity: 1;
+  color: var(--interactive-accent);
+}
+
+.memonic-id {
+  font-size: 10px;
+  color: var(--text-faint);
+  font-family: monospace;
+  margin-bottom: 2px;
+}
+
+.memonic-source {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-left: 8px;
+}
+
+.memonic-toggle-deleted {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.memonic-refresh-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--text-muted);
+  float: right;
+}
+
+.memonic-refresh-btn:hover {
+  color: var(--interactive-accent);
+}
+
+.memonic-filter-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.memonic-filter-row select {
+  flex: 1;
+}
+
+.memonic-order-btn {
+  background: none;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 2px 6px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+}
+
+.memonic-order-btn:hover {
+  color: var(--interactive-accent);
+  border-color: var(--interactive-accent);
+}
+
+.memonic-nav-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  color: var(--text-muted);
+  opacity: 0.6;
+  display: flex;
+  align-items: center;
+}
+
+.memonic-nav-btn:hover {
+  opacity: 1;
+  color: var(--interactive-accent);
+}
+
+.memonic-action-row {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.memonic-location-badge {
+  font-size: 10px;
+  color: var(--text-faint);
+  font-family: monospace;
+  margin-bottom: 2px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: var(--background-modifier-border);
+  display: inline-block;
+}
+
+.memonic-folder-tree {
+  margin: 6px 0;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  padding: 4px;
+}
+
+.memonic-tree-inner {
+  display: flex;
+  flex-direction: column;
+}
+
+.memonic-tree-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 0;
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.memonic-tree-row:hover {
+  background: var(--background-modifier-hover);
+}
+
+.memonic-tree-expand {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  font-size: 12px;
+  width: 16px;
+  flex-shrink: 0;
+}
+
+.memonic-tree-spacer {
+  width: 16px;
+  flex-shrink: 0;
+}
+
+.memonic-tree-name {
+  font-size: 12px;
+  color: var(--text-normal);
+}
+
+.memonic-tree-name:hover {
+  color: var(--interactive-accent);
+}
+
+.memonic-tree-children {
+  padding-left: 0;
+}
+
+.memonic-group-header {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 8px 4px 4px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  margin-top: 8px;
+}
+
+.memonic-group-header:first-child {
+  margin-top: 0;
+}
+
+.memonic-group-subheader {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-faint);
+  padding: 4px 4px 2px 12px;
+}
+
+.memonic-advanced-btn {
+  background: none;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 2px 6px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+}
+
+.memonic-advanced-btn:hover {
+  color: var(--interactive-accent);
+  border-color: var(--interactive-accent);
+}
+
+.memonic-tags-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  position: relative;
+}
+
+.memonic-tags-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.memonic-tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--tag-background, var(--background-modifier-border));
+  color: var(--tag-color, var(--text-normal));
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1.4;
+}
+
+.memonic-tag-remove {
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--text-muted);
+}
+
+.memonic-tag-remove:hover {
+  color: var(--text-error);
+}
+
+.memonic-tags-input-row {
+  display: flex;
+}
+
+.memonic-tags-input {
+  flex: 1;
+}
+
+.memonic-tags-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 150px;
+  overflow-y: auto;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.memonic-tags-item {
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.memonic-tags-item:hover {
+  background: var(--background-modifier-hover);
+}
+
+.memonic-keywords-container {
+  width: 100%;
+}
+
+.memonic-keywords-input {
+  width: 100%;
+}
