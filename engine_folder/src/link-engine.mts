@@ -1,5 +1,5 @@
 // ========== 1. IMPORTS ==========
-import type { Memonic, Link } from "./types.js";
+import type { Memonic, Link } from "@rakz-app/mns-parser";
 import { getAllMemonics, getMemonicBySid, deleteMemonic } from "./memory-store.mjs";
 
 // ========== 2. TYPES ==========
