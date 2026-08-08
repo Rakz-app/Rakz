@@ -74,6 +74,8 @@ export function importDocument(doc: MnemoDocument): void {
 // purpose: safely mints a new, permanently unique integer for new cards 
 //          by incrementing sidCounter by 1 every time it is called.
 // io: in --> void | out --> number
+// processes:
+//   1. INCREMENT: Output the current value of the internal counter, then increment it by 1 for the next call.
 export function generateSid(): number {
     // Returns the current value of the counter, THEN increments it by 1
     return sidCounter++;
@@ -82,6 +84,8 @@ export function generateSid(): number {
 // ----- getAllMemonics -----
 // purpose: Returns a copy of the active cards for the UI to display.
 // io: in --> void | out --> Memonic[]
+// processes:
+//   1. COPY: Generate and return a shallow copy of the active RAM array to prevent external code from mutating state.
 export function getAllMemonics(): Memonic[] {
     // Returns a copy of the RAM array to protect the internal state,
     // preventing external code from mutating it directly.
@@ -91,6 +95,8 @@ export function getAllMemonics(): Memonic[] {
 // ----- getMemonicBySid -----
 // purpose: Fetches a specific card using the hidden, immutable system ID.
 // io: in --> sid (number) | out --> Memonic | undefined
+// processes:
+//   1. SEARCH: Sweep the RAM array and return the first mnemonic matching the provided sid.
 export function getMemonicBySid(sid: number): Memonic | undefined {
     // Searches the array and returns the first card that matches the SID
     return memonics.find(mnemo => mnemo.sid === sid);
@@ -101,6 +107,8 @@ export function getMemonicBySid(sid: number): Memonic | undefined {
 // a unique sid for the new card, then pass it in as part of the Memonic object.
 // This is a deliberate design choice to keep the sid generation logic centralized and avoid accidental collisions.
 // io: in --> mnemonic (Memonic) | out --> void (mutates module state)
+// processes:
+//   1. APPEND: Push the fully constructed mnemonic object directly to the end of the RAM array.
 export function addMemonic(memonic: Memonic): void {
     // Appends the fully constructed card directly to the end of the RAM array
     memonics.push(memonic);
@@ -112,9 +120,72 @@ export function addMemonic(memonic: Memonic): void {
 //          Callers should use link-engine's deleteMemonicSafely() instead,
 //          which sweeps dangling links before calling this.
 // io: in → sid (number) | out → void (mutates module state)
+// processes:
+//   1. FILTER: Reassign the RAM array, keeping only mnemonics whose sid does not match the target.
 export function deleteMemonic(sid: number): void {
     // Reassigns the RAM array to a new array that excludes the target SID
     memonics = memonics.filter(mnemo => mnemo.sid !== sid);
+}
+
+// ----- updateMemonic -----
+// purpose: apply a partial edit to an existing mnemonic (title, type,
+//          context, importance, status, id — anything except sid/links/tags,
+//          which are structurally protected from this function)
+// io: in  -> sid (number), updates (Omit<Partial<Memonic>, "sid" | "links" | "tags">)
+//     out -> Memonic | undefined (the updated card, or undefined if sid wasn't found)
+// processes:
+//   1. FIND: Locate the target mnemonic in RAM by its sid.
+//   2. GUARD: If the target is not found, safely return undefined.
+//   3. MERGE: Apply the incoming partial updates to the existing object.
+//   4. RETURN: Hand back the freshly updated mnemonic.
+export function updateMemonic(sid: number, updates: Omit<Partial<Memonic>, "sid" | "links" | "tags">): Memonic | undefined {
+    const target = getMemonicBySid(sid);
+    if (!target) {
+        return undefined;
+    }
+
+    Object.assign(target, updates);
+    return target;
+}
+
+// ----- addTag -----
+// purpose: append a single tag to a mnemonic, avoiding duplicates
+// io: in  -> sid (number), tag (string) | out -> void
+// processes:
+//   1. GUARD: Fetch the target mnemonic by sid. Abort if it doesn't exist.
+//   2. NORMALIZE: Trim whitespace from the incoming tag. Abort if empty.
+//   3. DEDUPLICATE: Check existing tags case-insensitively. Abort if a match is found.
+//   4. APPEND: Push the clean, normalized tag into the mnemonic's tags array.
+export function addTag(sid: number, tag: string): void {
+    const target = getMemonicBySid(sid);
+    if (!target) {
+        return;
+    }
+
+    const normalizedTag = tag.trim();
+    if (normalizedTag === "") {
+        return;
+    }
+
+    const alreadyExists = target.tags.some(t => t.toLowerCase() === normalizedTag.toLowerCase());
+    if (!alreadyExists) {
+        target.tags.push(normalizedTag);
+    }
+}
+
+// ----- removeTag -----
+// purpose: remove a single tag from a mnemonic, if present
+// io: in  -> sid (number), tag (string) | out -> void
+// processes:
+//   1. GUARD: Fetch the target mnemonic by sid. Abort if it doesn't exist.
+//   2. FILTER: Reassign the tags array, keeping only tags that don't match the target string (case-insensitive).
+export function removeTag(sid: number, tag: string): void {
+    const target = getMemonicBySid(sid);
+    if (!target) {
+        return;
+    }
+
+    target.tags = target.tags.filter(t => t.toLowerCase() !== tag.toLowerCase());
 }
 
 // ========== 6. MAIN / EXPORTS ==========
