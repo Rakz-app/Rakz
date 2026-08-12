@@ -2,7 +2,13 @@
 import type { MnemoDocument, Memonic } from "@rakz-app/mns-parser";
 
 // ========== 2. TYPES ==========
-// (None required for this file)
+export interface FilterCriteria {
+    id?: string;
+    type?: string;
+    minImportance?: number;
+    tags?: string[];
+    tagMatchMode?: "AND" | "OR"; 
+}
 
 // ========== 3. CONSTANTS ==========
 // (None required for this file)
@@ -90,6 +96,58 @@ export function getAllMemonics(): Memonic[] {
     // Returns a copy of the RAM array to protect the internal state,
     // preventing external code from mutating it directly.
     return [...memonics];
+}
+
+// ----- filterMemonics -----
+// purpose: Returns a refined list of mnemonics based on multiple optional criteria.
+// io: in -> criteria (FilterCriteria) | out -> Memonic[]
+// processes:
+//   1. SWEEP: Iterate over the active RAM array using .filter().
+//   2. WATERFALL: Check each criterion one by one. If a card fails, immediately return false.
+//   3. RETURN: Output the safely copied array of surviving cards.
+export function filterMemonics(criteria: FilterCriteria): Memonic[] {
+    return memonics.filter(mnemo => {
+        // 1. Check ID (Exact match, safely handles empty strings)
+        if (criteria.id !== undefined && mnemo.id !== criteria.id) {
+            return false;
+        }
+
+        // 2. Check Type (Case-insensitive match, safely handles empty strings)
+        if (criteria.type !== undefined) {
+            if (!mnemo.type || mnemo.type.toLowerCase() !== criteria.type.toLowerCase()) {
+                return false;
+            }
+        }
+
+        // 3. Check Importance (Threshold, safely handles 0)
+        if (criteria.minImportance !== undefined) {
+            if (mnemo.importance === undefined || mnemo.importance < criteria.minImportance) {
+                return false;
+            }
+        }
+
+        // 4. Check Tags (Case-insensitive, dynamic AND/OR logic)
+        if (criteria.tags && criteria.tags.length > 0) {
+            const targetTags = criteria.tags.map(t => t.toLowerCase());
+            const cardTags = mnemo.tags.map(t => t.toLowerCase());
+            
+            // Default to AND logic if the UI doesn't specify
+            const mode = criteria.tagMatchMode || "AND"; 
+
+            if (mode === "AND") {
+                // Card must contain ALL target tags
+                const hasAll = targetTags.every(target => cardTags.includes(target));
+                if (!hasAll) return false;
+            } else {
+                // Card must contain AT LEAST ONE target tag
+                const hasAny = targetTags.some(target => cardTags.includes(target));
+                if (!hasAny) return false;
+            }
+        }
+
+        // 5. Survival! If it didn't trip any of the 'return false' traps, it passes.
+        return true;
+    });
 }
 
 // ----- getMemonicBySid -----
