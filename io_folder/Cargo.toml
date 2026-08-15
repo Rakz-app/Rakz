@@ -1,0 +1,16 @@
+[package]
+name = "rakz-io"
+version = "0.1.0"
+edition = "2021"
+description = "The Rust IO layer of the Rakz app: file couriers + keychain vault. No parsing, no logic, no network."
+license = "MIT"
+
+[dependencies]
+tauri = "2"
+tauri-plugin-opener = "2"
+keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }
+serde = { version = "1", features = ["derive"] }
+
+[dev-dependencies]
+tempfile = "3"
+serde_json = "1"

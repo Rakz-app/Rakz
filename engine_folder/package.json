@@ -8,16 +8,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Rakz-app/engine.git"
+    "url": "git+https://github.com/Rakz-app/Rakz.git",
+    "directory": "engine_folder"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/Rakz-app/engine/issues"
+    "url": "https://github.com/Rakz-app/Rakz/issues"
   },
-  "homepage": "https://github.com/Rakz-app/engine#readme",
+  "homepage": "https://github.com/Rakz-app/Rakz#readme",
   "devDependencies": {
     "@types/node": "^26.1.1",
     "typescript": "^7.0.2"
