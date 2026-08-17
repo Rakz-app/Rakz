@@ -1,0 +1,18 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "compilerOptions": {
+    "types": ["vite/client", "node"],
+    "allowArbitraryExtensions": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "verbatimModuleSyntax": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@engine/*": ["../engine_folder/src/*"]
+    }
+  },
+  "include": ["src/**/*", "src/**/*.vue", "tests/**/*.ts"],
+  "exclude": ["src-tauri"]
+}

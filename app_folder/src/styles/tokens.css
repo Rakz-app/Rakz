@@ -1,0 +1,27 @@
+/* ========== DESIGN TOKENS ==========
+   Every color the UI uses lives here as a CSS variable so a future
+   theme (light mode) is a token swap, not a per-component hunt.
+   Components must reference var(--*) instead of hardcoded hex. */
+:root {
+  --accent: #00e5ff;
+
+  --bg-root: #09090b;
+  --bg-panel: #0d0d11;
+  --bg-raised: #141419;
+  --bg-hover: #1a1a21;
+  --bg-overlay: #101014f2;
+
+  --border-dim: #26262e;
+  --border-mid: #33333d;
+
+  --text-hi: #f4f4f5;
+  --text-mid: #a1a1aa;
+  --text-low: #6b6b76;
+
+  --danger: #f87171;
+  --ok: #4ade80;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+}

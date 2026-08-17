@@ -1,0 +1,28 @@
+/* Global styles. Import once in main.ts. */
+@import 'tailwindcss';
+@import './tokens.css';
+
+/* App shell: fill the OS window; inner panels do their own scrolling. */
+html,
+body,
+#app {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;               /* root overflow lock */
+  background-color: var(--bg-root);
+  color: var(--text-hi);
+  font-family: Inter, system-ui, sans-serif;
+  font-weight: 500;               /* body defaults to Medium */
+}
+
+/* High-contrast headings, Bold. */
+h1, h2, h3, h4 {
+  font-weight: 700;
+  color: var(--text-hi);
+}
+
+/* Localized hidden scrollbars — scroll still works inside panels. */
+.rkz-app *::-webkit-scrollbar { width: 0; height: 0; }
+.rkz-app * { scrollbar-width: none; -ms-overflow-style: none; }
