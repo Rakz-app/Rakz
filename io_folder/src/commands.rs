@@ -208,6 +208,22 @@ pub async fn open_root_folder(app: tauri::AppHandle) -> Result<(), String> {
         .map_err(|e| format!("cannot open folder: {e}"))
 }
 
+/// purpose:   open ONE vault file in the OS default editor.
+/// LOCAL ADDITION (not in upstream io_folder yet — clean PR candidate).
+/// Same sandbox law as the couriers: safe_join refuses `..`/absolute escapes,
+/// so TS can only ever point at files inside ROOT. Opens with the DEFAULT
+/// handler only — no custom programs, no arguments, no line flags.
+#[tauri::command]
+pub async fn open_mns_file(app: tauri::AppHandle, name: String) -> Result<(), String> {
+    let path = safe_join(&mnemonics_root(&app)?, &name)?;
+    if !path.exists() {
+        return Err(format!("{name} does not exist"));
+    }
+    app.opener()
+        .open_path(path.to_string_lossy(), None::<&str>)
+        .map_err(|e| format!("cannot open {name}: {e}"))
+}
+
 // ---- the vault: secrets never touch files ------------------------------
 
 /// purpose:   store the API key in the OS keychain — the ONLY channel for secrets
