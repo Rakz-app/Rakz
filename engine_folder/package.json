@@ -1,29 +1,16 @@
 {
-  "name": "engine",
-  "version": "1.0.0",
-  "description": "Engine code for RAKZ",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Rakz-app/Rakz.git",
-    "directory": "engine_folder"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/Rakz-app/Rakz/issues"
-  },
-  "homepage": "https://github.com/Rakz-app/Rakz#readme",
-  "devDependencies": {
-    "@types/node": "^26.1.1",
-    "typescript": "^7.0.2"
+  "name": "@rakz/engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Pure TypeScript mnemonic engine: store, actions, link scoring, bridge. Zero DOM/Vue/Tauri dependencies.",
+  "exports": {
+    ".": "./src/index.ts"
   },
   "dependencies": {
-    "@rakz-app/mns-parser": "^0.0.1"
+    "@rakz-app/mns-parser": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0"
   }
 }
